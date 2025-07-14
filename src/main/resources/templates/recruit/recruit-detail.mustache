@@ -1,0 +1,223 @@
+<style>
+    .dt-span {
+        color: #5c667b;
+        width:86px;
+    }
+    dt {
+        font-weight: 500;
+    }
+    dl {
+        margin-bottom:0 !important;
+    }
+    dd {
+        margin-bottom: 0 !important;
+        margin-left: 0;
+    }
+    .left-info h5 {
+        margin-bottom: 0;
+    }
+    .custom-btn{
+        width: 185px;
+        background-color: #ff5656;
+        height: 60px;
+    }
+    .custom-btn-heart {
+        width:60px;
+        height:60px;
+        background:none;
+        border:1px solid #8491a7;
+    }
+    .custom-btn-apply {
+    width: 185px;
+        background-color: #ff5656;
+        height: 60px;
+        border:1px solid #8491a7;
+    }
+    .custom-title {
+        font-size: 26px;
+        font-weight: bold;
+    }
+    .custom-Name {
+        overflow: hidden;
+        margin-right: 8px;
+        padding-right: 2px;
+        max-width: 380px;
+        height: 28px;
+        color: #222;
+        font-size: 18px;
+        font-weight: normal;
+        line-height: 28px;
+        text-overflow: ellipsis;
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+    .custom-btn{
+        border:0;
+        border-radius:8px;
+    }
+    .custom-col {
+        gap: 5px;
+        flex-direction: column;
+        display: flex;
+        padding: 24px 0;
+        width: 420px;
+        font-size: 14px;
+    }
+</style>
+
+
+{{> layout/header}}
+<div class="wrapper">
+    <div class="content">
+        <div class="container my-4">
+            <div class="" style="max-width:960px; margin:0 auto">
+                {{#recruit}}
+
+                    <!-- 헤더 정보 -->
+                    <div class="d-flex justify-content-between align-items-center pb-3 mb-3">
+                        <div class="left-info">
+                            <div class="fw-bold custom-Name">
+                                <span>[ {{corp.corpName}} ]</span>
+                                <span>기업입니다</span>
+                            </div>
+                            <span class="fw-bold mt-2 custom-title">{{recruitTitle}}</span>
+                        </div>
+
+                        {{#sessionUser}}
+                                {{#isUser}}
+                                    {{#isApplied}}
+                                        <div class="right-info d-flex gap-1">
+                                            {{#isUser}}
+                                                <button class="custom-btn-heart" title="관심 기업 등록">
+                                                    {{#isLiked}}
+                                                        <span class="heart-icon" style="font-size: 24px;">❤️</span>
+                                                    {{/isLiked}}
+                                                    {{^isLiked}}
+                                                        <span class="heart-icon" style="font-size: 24px;">🖤</span>
+                                                    {{/isLiked}}
+                                                </button>
+                                            {{/isUser}}
+                                            <form action="/{{recruitIdx}}/apply" method="post" onsubmit="return confirm('정말로 지원 하시겠습니까?');">
+                                                <button class="fw-bold custom-btn text-white" disabled style="background-color: gray;">이미 지원함</button>
+                                            </form>
+                                        </div>
+                                    {{/isApplied}}
+
+                                    {{^isApplied}}
+                                        <div class="right-info d-flex gap-1">
+                                            {{#isUser}}
+                                                <button class="custom-btn-heart" title="관심 기업 등록">
+                                                    {{#isLiked}}
+                                                        <span class="heart-icon" style="font-size: 24px;">❤️</span>
+                                                    {{/isLiked}}
+                                                    {{^isLiked}}
+                                                        <span class="heart-icon" style="font-size: 24px;">🖤</span>
+                                                    {{/isLiked}}
+                                                </button>
+                                            {{/isUser}}
+                                            <form action="/{{recruitIdx}}/apply" method="post" onsubmit="return confirm('정말로 지원 하시겠습니까?');">
+                                                <button class="fw-bold custom-btn-apply text-white">입사지원</button>
+                                            </form>
+                                        </div>
+                                    {{/isApplied}}
+                                {{/isUser}}
+                                {{#isCorp}}
+                                    <button class="fw-bold custom-btn text-white" disabled style="background-color: gray;">기업 유저는 지원불가</button>
+                                {{/isCorp}}
+                        {{/sessionUser}}
+
+                        {{^sessionUser}}
+                            <div class="right-info">
+                                <button class="fw-bold custom-btn text-white" disabled style="background-color: lightgray;">로그인 후 지원 가능</button>
+                            </div>
+                        {{/sessionUser}}
+                    </div>
+
+
+                    <!-- 조건 정보 -->
+                    <div class="row border-top border-bottom" style="border-color: #e5e6eb;">
+                        <div class="col custom-col">
+                            <dl class="d-flex">
+                                <dt class="dt-span">경력</dt>
+                                <dd>{{career}}</dd>
+                            </dl>
+                            <dl class="d-flex">
+                                <dt class="dt-span">학력</dt>
+                                <dd>{{education}}</dd>
+                            </dl>
+                            <dl class="d-flex">
+                                <dt class="dt-span">근무형태</dt>
+                                <dd>{{workType}}</dd>
+                            </dl>
+                        </div>
+                        <div class="col custom-col">
+                            <dl class="d-flex">
+                                <dt class="dt-span">모집 인원</dt>
+                                <dd>{{recruitNumber}} 명</dd>
+                            </dl>
+                            <dl class="d-flex">
+                                <dt class="dt-span">지역</dt>
+                                <dd>{{area}}</dd>
+                            </dl>
+                            <dl class="d-flex">
+                                <dt class="dt-span">입사 지원일</dt>
+                                <dd>{{startAtFormatted}}</dd>
+                            </dl>
+                            <dl class="d-flex">
+                                <dt class="dt-span">입사 마감일</dt>
+                                <dd>{{endAtFormatted}}</dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <!-- 공고 내용 -->
+                    <div class="mt-4">
+                        <div class="text-center">
+                            <h2 style="font-weight:700!important">[ 기업 구인 공고 직무 내용 ]</h2>
+                        </div>
+                        <div>
+                            <span class="fw-bold" style="color:#5c667b">[직무 내용]</span>
+                        </div>
+                        <div class="fw-bold">{{recruitContent}}</div>
+                    </div>
+
+                {{/recruit}}
+            </div>
+        </div>
+    </div>
+</div>
+
+{{> layout/footer}}
+<script>
+    document.querySelectorAll('.custom-btn-heart').forEach(button => {
+        button.addEventListener('click', function (e) {
+            e.preventDefault(); // form 전송 방지
+
+            const recruitIdx = "{{recruitIdx}}";
+            const iconSpan = this.querySelector('.heart-icon') || this;
+
+            fetch(`/like/api/likes/${recruitIdx}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+
+                if (data.status === 'liked') {
+                    iconSpan.textContent = '❤️';
+                    alert("관심 공고에 등록되었습니다!");
+                } else if (data.status === 'unliked') {
+                    iconSpan.textContent = '🖤';
+                    alert("관심 공고에서 제거되었습니다.");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("오류가 발생했습니다.");
+            });
+        });
+    });
+</script>
+

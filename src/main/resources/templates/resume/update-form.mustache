@@ -1,0 +1,233 @@
+{{> layout/header}}
+
+<style>
+    /* 반응형: 모바일 화면 스타일 */
+    @media (max-width: 767.98px) {
+        i.fs-5 {
+            font-size: 1rem !important;
+        }
+    }
+</style>
+
+<div class="wrapper">
+    <div class="content">
+        <div class="container my-5" style="max-with:1200px;">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light py-3">
+                    <!-- 헤더: 제목 및 삭제 버튼 -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2 class="text-truncate h4 mb-0">{{member.username}}님의 이력서 업그레이드 중</h2>
+                        <form id="delete-form-icon" action="/resume/{{resume.resumeIdx}}/delete" method="post">
+                            <button type="submit" class="btn btn-link p-0" title="삭제하기" style="color: Tomato;">
+                                <i class="fa-solid fa-trash fs-5"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form id="update-form" action="/resume/{{resume.resumeIdx}}/update" method="post">
+                        <!-- 이력서 제목 -->
+                        <div class="mb-3">
+                            <label for="resumeTitle" class="form-label fw-bold">이력서 제목</label>
+                            <input type="text" class="form-control" id="resumeTitle" name="resumeTitle"
+                                   value="{{resume.resumeTitle}}" maxlength="50" required>
+                            {{#errors.resumeTitle}}
+                                <div class="text-danger small">{{.}}</div>{{/errors.resumeTitle}}
+                        </div>
+                        <!-- 이력서 본문 -->
+                        <div class="mb-3">
+                            <label for="resumeContent" class="form-label fw-bold">이력서 내용</label>
+                            <textarea class="form-control" id="resumeContent" name="resumeContent"
+                                      rows="10" maxlength="5000" required>{{resume.resumeContent}}</textarea>
+                            {{#errors.resumeContent}}
+                                <div class="text-danger small">{{.}}</div>{{/errors.resumeContent}}
+                        </div>
+                        <!-- 대표 이력서 설정 -->
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="isRep" id="isRep" value="true"
+                                   {{#resume.isRep}}checked{{/resume.isRep}} title="대표 이력서로 설정">
+                            <label class="form-check-label" for="isRep">
+                                이 이력서를 내 대표 이력서로 설정할게요
+                            </label>
+                        </div>
+
+                        <hr>
+
+                        <!-- 경력 정보 (기존) -->
+                        <h4>경력 정보</h4>
+                        <div id="career-container" data-initial-size="{{resume.careerList.size}}">
+                            {{#resume.careerList}}
+                                <div class="card my-3 p-3 bg-light career-item">
+                                    <div class="d-flex align-items-start">
+                                        <div class="flex-grow-1" style="min-width: 0;">
+                                            <!-- 기존 경력 정보 표시 (수정 불가) -->
+                                            <h5 class="card-title">{{corpName}}</h5>
+                                            {{#position}}
+                                                <h6 class="card-subtitle mb-2 text-muted">{{position}}</h6>
+                                            {{/position}}
+                                            {{#startAt}}
+                                                <p class="card-text"><small class="text-muted">{{startAt}} ~ {{endAt}}</small></p>
+                                            {{/startAt}}
+                                            <p class="card-text" style="white-space: pre-wrap;">{{careerContent}}</p>
+                                        </div>
+                                        <div class="flex-shrink-0 ms-3">
+                                            <!-- 기존 경력 삭제 버튼 -->
+                                            <button type="button" class="btn btn-link p-0 remove-career-btn"
+                                                    data-career-id="{{careerIdx}}" title="삭제하기" style="color: Tomato;">
+                                                <i class="fa-solid fa-trash fs-5"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            {{/resume.careerList}}
+                        </div>
+                        <!-- 경력 추가 버튼 -->
+                        <button type="button" id="add-career-btn" class="btn btn-outline-secondary">경력 추가</button>
+
+                        <hr>
+                        <!-- 하단 버튼 -->
+                        <div class="d-flex justify-content-end">
+                            <a href="/resume/{{resume.resumeIdx}}" class="btn btn-outline-secondary me-2">취소</a>
+                            <button type="submit" id="submit-btn" class="btn btn-outline-primary">수정완료</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // DOM 로드 완료 후 스크립트 실행
+    document.addEventListener('DOMContentLoaded', function () {
+
+        // 1. 요소 및 변수 초기화
+        const updateForm = document.getElementById('update-form');
+        const deleteFormIcon = document.getElementById('delete-form-icon');
+        const careerContainer = document.getElementById('career-container');
+        const addCareerBtn = document.getElementById('add-career-btn');
+
+        // 새로 추가될 경력의 인덱스. 기존 경력 개수에서 시작.
+        const initialSize = careerContainer.getAttribute('data-initial-size');
+        let careerIndex = initialSize ? parseInt(initialSize, 10) : 0;
+
+        /**
+         * 새 경력 입력 폼의 HTML 템플릿을 생성합니다.
+         * @param {number} index - 'careers[index]' 형식의 name 속성에 사용될 순번
+         * @returns {string} - 경력 입력 폼의 HTML 문자열
+         */
+        function createCareerItemHTML(index) {
+            return `
+                <div class="d-flex align-items-start">
+                    <div class="flex-grow-1" style="min-width: 0;">
+                        <div class="mb-2">
+                            <label class="form-label">회사명</label>
+                            <input type="text" name="careers[${index}].corpName" class="form-control" placeholder="예: (주)네이버" maxlength="50" required>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">직책</label>
+                            <input type="text" name="careers[${index}].position" class="form-control" placeholder="예: 백엔드 개발팀 / 사원" maxlength="50">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">담당 업무</label>
+                            <textarea name="careers[${index}].careerContent" class="form-control" rows="3" maxlength="500" placeholder="담당했던 주요 업무와 성과를 구체적으로 작성해주세요." required></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">입사일</label>
+                                <input type="date" name="careers[${index}].startAt" class="form-control">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label">퇴사일</label>
+                                <input type="date" name="careers[${index}].endAt" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex-shrink-0 ms-3 mt-4 pt-2">
+                        <button type="button" class="btn btn-link p-0 remove-career-btn" title="삭제하기" style="color: Tomato;">
+                            <i class="fa-solid fa-trash fs-5"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * 날짜 선택기(flatpickr)를 초기화하는 함수.
+         * @param {HTMLElement} element - 달력을 적용할 input[type=date] 요소
+         */
+        function initializeFlatpickr(element) {
+            if (typeof flatpickr === 'undefined') {
+                console.error('flatpickr 라이브러리가 로드되지 않았습니다.');
+                return;
+            }
+            flatpickr(element, { dateFormat: "Y-m-d", locale: "ko" });
+        }
+
+        // 2. 이벤트 리스너 설정
+        // 이력서 삭제 확인 (상단 아이콘)
+        deleteFormIcon.addEventListener('submit', function (e) {
+            if (!confirm('정말 이 이력서를 삭제하시겠습니까? 되돌릴 수 없어요!')) {
+                e.preventDefault();
+            }
+        });
+
+        // '경력 추가' 버튼 클릭 이벤트
+        addCareerBtn.addEventListener('click', function () {
+            const careerDiv = document.createElement('div');
+            careerDiv.classList.add('card', 'my-3', 'p-3', 'bg-light', 'career-item', 'new-career-item');
+            careerDiv.innerHTML = createCareerItemHTML(careerIndex);
+            careerContainer.appendChild(careerDiv);
+
+            // 중요: 새로 추가된 날짜 입력 필드에 달력(flatpickr) 적용
+            const newDateInputs = careerDiv.querySelectorAll('input[type="date"]');
+            newDateInputs.forEach(initializeFlatpickr);
+
+            // UX 개선: 새로 추가된 폼으로 스크롤하고 첫 입력 필드에 포커스
+            careerDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            const firstInput = careerDiv.querySelector('input[type="text"]');
+            if (firstInput) firstInput.focus();
+
+            careerIndex++; // 다음 인덱스 준비
+        });
+
+        // '경력 삭제' 버튼 클릭 이벤트 (이벤트 위임)
+        careerContainer.addEventListener('click', function (e) {
+            const removeBtn = e.target.closest('.remove-career-btn');
+            if (!removeBtn) return;
+
+            const careerItem = removeBtn.closest('.career-item');
+            if (!careerItem) return;
+
+            if (!confirm('이 경력 항목을 삭제하시겠습니까?')) return;
+
+            const careerId = removeBtn.getAttribute('data-career-id');
+            if (careerId) {
+                // 기존 경력 삭제: 삭제할 ID를 hidden input으로 추가
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'deletedCareerIds';
+                hiddenInput.value = careerId;
+                updateForm.appendChild(hiddenInput);
+                careerItem.remove();
+            } else {
+                // 새로 추가된 경력 삭제: 그냥 DOM에서 제거
+                careerItem.remove();
+            }
+        });
+
+        // '수정완료' 폼 제출 이벤트
+        updateForm.addEventListener('submit', function(e) {
+            // 제출 전, 내용이 비어있는 '새로운' 경력 폼은 자동으로 제거
+            const newCareerItems = document.querySelectorAll('.new-career-item');
+            newCareerItems.forEach(item => {
+                const corpNameInput = item.querySelector('input[name*="corpName"]');
+                if (corpNameInput && corpNameInput.value.trim() === '') {
+                    item.remove();
+                }
+            });
+        });
+    });
+</script>
+
+{{> layout/footer}}

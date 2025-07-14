@@ -1,0 +1,135 @@
+{{> layout/header}}
+
+<style>
+    /* 반응형: 모바일 화면 스타일 */
+    @media (max-width: 767.98px) {
+        i.fs-5 {
+            font-size: 1rem !important;
+        }
+    }
+</style>
+
+<div class="wrapper">
+    <div class="content">
+        <div class="container my-5" style="max-with:1200px">
+            <div class="card shadow-sm">
+                <!-- 카드 헤더: 이력서 제목 및 버튼 -->
+                <div class="card-header bg-light py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h1 class="text-truncate h4 mb-0">{{resume.resumeTitle}}</h1>
+
+                        <!-- 소유자 전용 버튼 (목록/수정/삭제) -->
+                        {{#isOwner}}
+                            <div class="d-flex align-items-center gap-3">
+                                <a href="/resumes" class="text-primary" title="목록으로">
+                                    <i class="fa-solid fa-list fs-5"></i>
+                                </a>
+                                <a href="/resume/{{resume.resumeIdx}}/update-form" class="text-primary" title="수정하기">
+                                    <i class="fa-solid fa-pen-to-square fs-5"></i>
+                                </a>
+                                <form class="delete-form" action="/resume/{{resume.resumeIdx}}/delete" method="post">
+                                    <button type="submit" class="btn btn-link p-0" title="삭제하기" style="color: Tomato;">
+                                        <i class="fa-solid fa-trash fs-5"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        {{/isOwner}}
+                    </div>
+                </div>
+                <hr>
+                <!-- 카드 바디: 개인 정보 -->
+                <div class="card-body">
+                    <h2 class="h5 border-bottom pb-2 mb-3">{{resume.member.username}}</h2>
+                    <div class="col mb-4 p-3 border rounded">
+                        <p><strong>나이/성별:</strong> {{resume.member.age}}세 / {{resume.member.sex}}</p>
+                        <p><strong>연락처:</strong> {{resume.member.phoneNumber}}</p>
+                        <p><strong>이메일:</strong> {{resume.member.email}}</p>
+                        <p><strong>주소:</strong> {{resume.member.address}}</p>
+                    </div>
+
+                    <hr>
+
+                    <!-- 자기소개 (pre: 입력된 공백/줄바꿈 유지) -->
+                    <h2 class="h5 border-bottom pb-2 mb-3 mt-4">소개글</h2>
+                    <div class="p-3 bg-white border rounded">
+                        <pre style="white-space: pre-wrap; word-wrap: break-word; font-family: inherit; font-size: 1rem;">{{resume.resumeContent}}</pre>
+                    </div>
+
+                    <!-- 경력 사항 -->
+                    <h2 class="h5 border-bottom pb-2 mb-3 mt-4">경력사항</h2>
+                    {{#resume.careerList}}
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">{{corpName}}</h5>
+                                {{#position}}
+                                    <h6 class="card-subtitle mb-2 text-muted">{{position}}</h6>
+                                {{/position}}
+                                <!-- 모든 날짜 경우의 수를 처리 -->
+                                {{#startAt}}
+                                    <p class="card-text"><small class="text-muted">{{startAt}} ~ {{#endAt}}{{endAt}}{{/endAt}}</small></p>
+                                {{/startAt}}
+                                {{^startAt}}
+                                    {{#endAt}}
+                                        <p class="card-text"><small class="text-muted">~ {{endAt}}</small></p>
+                                    {{/endAt}}
+                                {{/startAt}}
+                                <p class="card-text" style="white-space: pre-wrap;">{{careerContent}}</p>
+                            </div>
+                        </div>
+                    {{/resume.careerList}}
+
+                    <!-- 경력 사항 없음 -->
+                    {{^resume.careerList}}
+                        <div class="text-center p-3 border rounded">
+                            <p class="mb-0">입력된 경력 정보가 없습니다.</p>
+                        </div>
+                    {{/resume.careerList}}
+                </div>
+
+                <!-- 하단 버튼 영역 -->
+                <div class="card-footer bg-transparent py-3">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <!-- 소유자 여부에 따라 '목록' 버튼 동작 분기 -->
+                            {{#isOwner}}
+                                <!-- 소유자: 이력서 목록으로 이동 -->
+                                <a href="/resumes" class="btn btn-outline-primary">목록으로</a>
+                            {{/isOwner}}
+                            {{^isOwner}}
+                                <!-- 비소유자(기업): 이전 페이지로 이동 -->
+                                <a href="#" onclick="history.back(); return false;" class="btn btn-outline-primary">목록으로</a>
+                            {{/isOwner}}
+                        </div>
+
+                        <!-- 소유자 전용 버튼 (수정/삭제) -->
+                        {{#isOwner}}
+                            <div class="d-flex gap-2">
+                                <a href="/resume/{{resume.resumeIdx}}/update-form" class="btn btn-outline-primary">수정하기</a>
+                                <form class="delete-form" action="/resume/{{resume.resumeIdx}}/delete" method="post">
+                                    <button type="submit" class="btn btn-outline-danger">삭제하기</button>
+                                </form>
+                            </div>
+                        {{/isOwner}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // DOM 로드 완료 후 스크립트 실행
+    document.addEventListener('DOMContentLoaded', function () {
+        // 삭제 form 제출 시, 확인 대화상자 표시
+        document.querySelectorAll('.delete-form').forEach(form => {
+            form.addEventListener('submit', function (event) {
+                if (!confirm('정말 삭제하시겠습니까?')) {
+                    // 사용자가 '취소' 선택 시 form 제출 중단
+                    event.preventDefault();
+                }
+            });
+        });
+    });
+</script>
+
+{{> layout/footer}}

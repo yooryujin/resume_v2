@@ -1,0 +1,184 @@
+{{> layout/header}}
+
+<style>
+    /* 반응형: 모바일 화면 스타일 */
+    @media (max-width: 767.98px) {
+        i.fs-5 {
+            font-size: 1rem !important;
+        }
+    }
+</style>
+
+<div class="wrapper">
+    <div class="content">
+        <div class="container my-5" style="max-width: 1200px;">
+            <!-- 페이지 헤더 -->
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <h2 class="text-truncate h3 text-muted"
+                    title="{{member.username}}님의 이력서 목록입니다. 모두 {{totalCount}}개의 이력서가 있습니다.">
+                    {{member.username}}님의 이력서 목록 ({{totalCount}})
+                </h2>
+                <a href="/resume/save-form" class="btn btn-outline-primary text-nowrap" title="새 이력서 작성하러 가기">
+                    <i class="fa-solid fa-plus me-2"></i>
+                    새 이력서
+                </a>
+            </div>
+            <hr>
+
+            <!-- 대표 이력서 -->
+            {{#repResume}}
+                <div class="card border-primary shadow-sm mt-3 mb-3">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1" style="min-width: 0;">
+                                <a href="/resume/{{resumeIdx}}" class="text-decoration-none">
+                                    <h5 class="text-truncate card-title mb-1 text-primary fw-bold">{{resumeTitle}}</h5>
+                                </a>
+                                <p class="card-text"><small class="text-muted">작성일: {{createdAtFormatted}}</small></p>
+                                <pre class="text-truncate card-text text-muted mt-1">{{shortContent}}</pre>
+                            </div>
+                            <div class="flex-shrink-0 ms-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <span class="badge text-primary p-0 fs-5" title="대표 이력서입니다.">
+                                        <i class="fa-solid fa-trophy"></i>
+                                        <span class="d-none d-md-inline"> 대표 이력서</span>
+                                    </span>
+                                    <a href="/resume/{{resumeIdx}}/update-form" class="text-primary" title="수정하기">
+                                        <i class="fa-solid fa-pen-to-square fs-5"></i>
+                                    </a>
+
+                                    <!-- data-resume-title: JS에서 확인 메시지에 사용 -->
+                                    <form action="/resume/{{resumeIdx}}/delete" method="post"
+                                          class="delete-form d-inline" data-resume-title="{{resumeTitle}}">
+                                        <button type="submit" class="btn btn-link p-0" title="삭제하기"
+                                                style="color: Tomato !important;">
+                                            <i class="fa-solid fa-trash fs-5"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {{/repResume}}
+
+            <!-- 일반 이력서 목록 -->
+            <div class="row row-cols-1 gy-3">
+                {{#resumePage.content}}
+                    <hr class="mt-3 mb-0">
+                    <div class="col">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-grow-1" style="min-width: 0;">
+                                        <a href="/resume/{{resumeIdx}}" class="text-decoration-none">
+                                            <h5 class="text-truncate card-title mb-1 text-muted">{{resumeTitle}}</h5>
+                                        </a>
+                                        <p class="card-text">
+                                            <small class="text-muted">작성일: {{createdAtFormatted}}</small>
+                                        </p>
+                                        <pre class="text-truncate card-text text-muted mt-1">{{shortContent}}</pre>
+                                    </div>
+                                    <div class="flex-shrink-0 ms-3">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <!-- data-resume-title: JS에서 확인 메시지에 사용 -->
+                                            <form action="/resume/{{resumeIdx}}/set-rep" method="post"
+                                                  class="set-rep-form d-inline" data-resume-title="{{resumeTitle}}">
+                                                <button type="submit" class="btn btn-link text-primary p-0"
+                                                        title="대표 이력서로 설정">
+                                                    <i class="fa-regular fa-star fs-5"></i>
+                                                </button>
+                                            </form>
+                                            <a href="/resume/{{resumeIdx}}/update-form" class="text-primary"
+                                               title="수정하기">
+                                                <i class="fa-solid fa-pen-to-square fs-5"></i>
+                                            </a>
+                                            <!-- data-resume-title: JS에서 확인 메시지에 사용 -->
+                                            <form action="/resume/{{resumeIdx}}/delete" method="post"
+                                                  class="delete-form d-inline" data-resume-title="{{resumeTitle}}">
+                                                <button type="submit" class="btn btn-link p-0" title="삭제하기"
+                                                        style="color: Tomato !important;">
+                                                    <i class="fa-solid fa-trash fs-5"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {{/resumePage.content}}
+
+                <!-- 이력서 없음 메시지 -->
+                {{^repResume}}
+                    {{#resumePage.empty}}
+                        <div class="col">
+                            <div class="text-center py-5">
+                                <p class="mb-0">작성된 이력서가 없습니다. 새 이력서를 작성해 보세요.</p>
+                            </div>
+                        </div>
+                    {{/resumePage.empty}}
+                {{/repResume}}
+            </div>
+
+            <!-- 페이지네이션 -->
+            <div class="d-flex justify-content-center mt-4">
+                <ul class="pagination">
+                    <li class="page-item {{^navigation.hasPrev}}disabled{{/navigation.hasPrev}}">
+                        <a class="page-link" href="?page={{navigation.prevPage}}">이전</a>
+                    </li>
+
+                    {{#navigation.pageNumbers}}
+                        <li class="page-item {{#current}}active{{/current}}">
+                            <a class="page-link" href="?page={{number}}">{{displayNumber}}</a>
+                        </li>
+                    {{/navigation.pageNumbers}}
+
+                    <li class="page-item {{^navigation.hasNext}}disabled{{/navigation.hasNext}}">
+                        <a class="page-link" href="?page={{navigation.nextPage}}">다음</a>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // DOM 로드 완료 후 스크립트 실행
+    document.addEventListener('DOMContentLoaded', function () {
+
+        /**
+         * 폼 제출 시 동적 확인 메시지를 표시하는 공통 함수.
+         * @param {string} selector - 대상 폼의 CSS 선택자 (e.g., '.delete-form')
+         * @param {string} messageTemplate - '{title}'을 포함하는 메시지 템플릿
+         */
+        function addDynamicConfirmationToForms(selector, messageTemplate) {
+            // selector로 폼 선택
+            const forms = document.querySelectorAll(selector);
+
+            // 각 폼에 submit 이벤트 리스너 추가
+            forms.forEach(form => {
+                form.addEventListener('submit', function (event) {
+                    // data 속성에서 이력서 제목 추출
+                    const resumeTitle = form.dataset.resumeTitle || '이 이력서';
+
+                    // 메시지 템플릿에 제목 적용
+                    const dynamicMessage = messageTemplate.replace('{title}', resumeTitle);
+
+                    // 동적 메시지로 사용자 확인
+                    if (!confirm(dynamicMessage)) {
+                        // '취소' 선택 시, form 제출 중단
+                        event.preventDefault();
+                    }
+                });
+            });
+        }
+
+        // 공통 함수를 사용하여 삭제/대표설정 확인 기능 초기화
+        addDynamicConfirmationToForms('.delete-form', "'{title}' 이력서를 정말로 삭제하시겠습니까?");
+        addDynamicConfirmationToForms('.set-rep-form', "'{title}' 이력서를 대표 이력서로 설정하시겠습니까?");
+    });
+</script>
+
+{{> layout/footer}}
