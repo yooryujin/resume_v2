@@ -130,6 +130,9 @@ public class ResumeResponse {
                 this.careerList.add(new CareerResponse.CareerDTO(career));
             }
 
+            // 서비스(findMyResumeDetail)에서 소유권 검증이 끝난 후 호출되므로 isOwner는 항상 true.
+            this.isOwner = true;
+
         }
 
 

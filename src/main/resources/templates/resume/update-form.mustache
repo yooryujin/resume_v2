@@ -17,7 +17,9 @@
                     <!-- 헤더: 제목 및 삭제 버튼 -->
                     <div class="d-flex justify-content-between align-items-center">
                         <h2 class="text-truncate h4 mb-0">{{member.username}}님의 이력서 업그레이드 중</h2>
-                        <form id="delete-form-icon" action="/resume/{{resume.resumeIdx}}/delete" method="post">
+                        <form class="confirm-form" action="/resume/{{resume.resumeIdx}}/delete" method="post"
+                              data-confirm-template="'{itemName}' 이력서를 정말로 {action}하시겠습니까?"
+                              data-item-name="{{resume.resumeTitle}}" data-action="삭제">
                             <button type="submit" class="btn btn-link p-0" title="삭제하기" style="color: Tomato;">
                                 <i class="fa-solid fa-trash fs-5"></i>
                             </button>
@@ -103,7 +105,6 @@
 
         // 1. 요소 및 변수 초기화
         const updateForm = document.getElementById('update-form');
-        const deleteFormIcon = document.getElementById('delete-form-icon');
         const careerContainer = document.getElementById('career-container');
         const addCareerBtn = document.getElementById('add-career-btn');
 
@@ -165,13 +166,6 @@
         }
 
         // 2. 이벤트 리스너 설정
-        // 이력서 삭제 확인 (상단 아이콘)
-        deleteFormIcon.addEventListener('submit', function (e) {
-            if (!confirm('정말 이 이력서를 삭제하시겠습니까? 되돌릴 수 없어요!')) {
-                e.preventDefault();
-            }
-        });
-
         // '경력 추가' 버튼 클릭 이벤트
         addCareerBtn.addEventListener('click', function () {
             const careerDiv = document.createElement('div');

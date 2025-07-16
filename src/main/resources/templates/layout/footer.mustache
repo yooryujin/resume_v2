@@ -5,5 +5,35 @@
     <button class="btn btn-outline-primary">오시는길</button>
 </div>
 </body>
+<script>
+    // DOM 로드 완료 후 스크립트 실행
+    document.addEventListener('DOMContentLoaded', function () {
 
+        /**
+         * 폼 제출 시 데이터 속성을 기반으로 동적 확인 메시지를 표시하는 공통 함수.
+         * 사용법: <form class="confirm-form"
+         *              data-confirm-template="'{itemName}' 항목을 정말로 {action}하시겠습니까?"
+         *              data-item-name="이력서 제목"
+         *              data-action="삭제">
+         */
+        const confirmationForms = document.querySelectorAll('.confirm-form');
+
+        confirmationForms.forEach(form => {
+            form.addEventListener('submit', function (event) {
+                const template = form.dataset.confirmTemplate || '정말로 실행하시겠습니까?';
+                const itemName = form.dataset.itemName || '해당 항목';
+                const action = form.dataset.action || '실행';
+
+                // 플레이스홀더를 실제 값으로 교체
+                const finalMessage = template
+                    .replace('{itemName}', itemName)
+                    .replace('{action}', action);
+
+                if (!confirm(finalMessage)) {
+                    event.preventDefault(); // 폼 제출 중단
+                }
+            });
+        });
+    });
+</script>
 </html>
