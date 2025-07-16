@@ -27,7 +27,20 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <form id="update-form" action="/resume/{{resume.resumeIdx}}/update" method="post">
+                    <form id="update-form" action="/resume/{{resume.resumeIdx}}/update" method="post" enctype="multipart/form-data">
+                        <!-- 사진 미리보기 및 수정 -->
+                        <div class="mb-3">
+                            <label for="photo" class="form-label fw-bold">이력서 사진</label>
+                            <div class="d-flex align-items-center">
+                                <img id="photo-preview" src="{{#resume.resumePhoto}}/resume-images/{{resume.resumePhoto}}{{/resume.resumePhoto}}{{^resume.resumePhoto}}/images/person.png{{/resume.resumePhoto}}" alt="이력서 사진 미리보기"
+                                     class="img-thumbnail me-3" style="width: 100px; height: 100px; object-fit: cover;">
+                                <div class="flex-grow-1">
+                                    <input type="file" class="form-control" id="photo" name="photo" accept="image/*">
+                                    <div class="form-text">새로운 사진을 업로드하면 기존 사진이 교체됩니다.</div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- 이력서 제목 -->
                         <div class="mb-3">
                             <label for="resumeTitle" class="form-label fw-bold">이력서 제목</label>
@@ -102,6 +115,7 @@
 <script>
     // DOM 로드 완료 후 스크립트 실행
     document.addEventListener('DOMContentLoaded', function () {
+        const photoInput = document.getElementById('photo');
 
         // 1. 요소 및 변수 초기화
         const updateForm = document.getElementById('update-form');
@@ -111,6 +125,20 @@
         // 새로 추가될 경력의 인덱스. 기존 경력 개수에서 시작.
         const initialSize = careerContainer.getAttribute('data-initial-size');
         let careerIndex = initialSize ? parseInt(initialSize, 10) : 0;
+
+        /**
+         * 파일 입력 시 이미지를 미리 보여주는 함수
+         * @param {Event} event - 파일 input의 change 이벤트 객체
+         */
+        function previewImage(event) {
+            const reader = new FileReader();
+            reader.onload = function(){
+                document.getElementById('photo-preview').src = reader.result;
+            };
+            if (event.target.files[0]) {
+                reader.readAsDataURL(event.target.files[0]);
+            }
+        }
 
         /**
          * 새 경력 입력 폼의 HTML 템플릿을 생성합니다.
@@ -166,6 +194,9 @@
         }
 
         // 2. 이벤트 리스너 설정
+        // '사진' 파일 변경 이벤트
+        if(photoInput) photoInput.addEventListener('change', previewImage);
+
         // '경력 추가' 버튼 클릭 이벤트
         addCareerBtn.addEventListener('click', function () {
             const careerDiv = document.createElement('div');

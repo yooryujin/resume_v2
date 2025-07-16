@@ -41,12 +41,26 @@
 
                 <!-- 카드 바디: 개인 정보 -->
                 <div class="card-body">
-                    <h2 class="h5 border-bottom pb-2 mb-3">{{resume.member.username}}</h2>
-                    <div class="col mb-4 p-3 border rounded">
-                        <p><strong>나이/성별:</strong> {{resume.member.age}}세 / {{resume.member.sex}}</p>
-                        <p><strong>연락처:</strong> {{resume.member.phoneNumber}}</p>
-                        <p><strong>이메일:</strong> {{resume.member.email}}</p>
-                        <p><strong>주소:</strong> {{resume.member.address}}</p>
+                    <div class="d-flex flex-column flex-md-row align-items-center">
+                        <!-- 사진 -->
+                        <div class="flex-shrink-0 mb-4 mb-md-0 me-md-4 text-center">
+                            {{#resume.resumePhoto}}
+                                <img src="/resume-images/{{resume.resumePhoto}}" alt="{{resume.member.username}}님의 사진"
+                                     class="img-thumbnail" style="width: 150px; height: 150px; object-fit: cover;">
+                            {{/resume.resumePhoto}}
+                            {{^resume.resumePhoto}}
+                                <!-- ❗ public/images/person.png 와 같은 기본 이미지가 필요합니다. -->
+                                <img src="/images/person.png" alt="기본 이미지" class="img-thumbnail"
+                                     style="width: 150px; height: 150px; object-fit: cover;">
+                            {{/resume.resumePhoto}}
+                        </div>
+                        <!-- 개인 정보 -->
+                        <div class="flex-grow-1">
+                            <h2 class="h5 border-bottom pb-2 mb-3">{{resume.member.username}}</h2>
+                            <p class="mb-1"><strong>연락처:</strong> {{resume.member.phoneNumber}}</p>
+                            <p class="mb-1"><strong>이메일:</strong> {{resume.member.email}}</p>
+                            <p class="mb-0"><strong>주소:</strong> {{resume.member.address}}</p>
+                        </div>
                     </div>
 
                     <hr>

@@ -30,6 +30,8 @@ public class Resume {
     @Lob
     private String resumeContent;
 
+    private String resumePhoto;
+
     //대표이력서 (notnull 제거)
     private Boolean isRep = false;
 

@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +24,8 @@ public class ResumeRequest {
         private String resumeContent;
         private Boolean isRep;
 
+        private MultipartFile photo; // 사진 파일을 받기 위한 필드
+
         @Valid
         private List<CareerRequest.SaveDTO> careers = new ArrayList<>();
 
@@ -30,7 +33,7 @@ public class ResumeRequest {
             return Resume.builder()
                     .resumeTitle(this.resumeTitle)
                     .resumeContent(this.resumeContent)
-                    .isRep(this.isRep)
+                    .isRep(Boolean.TRUE.equals(this.isRep)) // null일 경우 false가 되도록 처리
                     .member(member)
                     .build();
         }
@@ -48,6 +51,8 @@ public class ResumeRequest {
         @Size(max = 5000, message = "내용은 5000자 이내로 작성해주세요.")
         private String resumeContent;
         private Boolean isRep;
+
+        private MultipartFile photo; // 👈 사진 수정을 위한 필드 추가
 
         @Valid
         private List<CareerRequest.UpdateDTO> careers = new ArrayList<>();

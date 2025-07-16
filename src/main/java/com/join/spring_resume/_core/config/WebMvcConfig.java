@@ -10,7 +10,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration // Ioc 처리 (싱글톤 패턴 관리)
 @RequiredArgsConstructor
-public class WebMcvConfig implements WebMvcConfigurer {
+public class WebMvcConfig implements WebMvcConfigurer {
 
     private final LoginInterceptor loginInterceptor;
     private final AuthInterceptor authInterceptor; // 추가사항
@@ -41,7 +41,7 @@ public class WebMcvConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/corp-images/**","/member-images/**")
-                .addResourceLocations("file:///C:/join-uploads/corp-images/","file:///C:/join-uploads/member-images/");
+        registry.addResourceHandler("/corp-images/**","/member-images/**", "/resume-images/**")
+                .addResourceLocations("file:///C:/join-uploads/corp-images/","file:///C:/join-uploads/member-images/", "file:///C:/join-uploads/resume-images/");
     }
 }

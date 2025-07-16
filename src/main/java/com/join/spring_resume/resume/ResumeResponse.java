@@ -27,6 +27,7 @@ public class ResumeResponse {
         private String resumeTitle;
         private String resumeContent;
         private Boolean isRep;
+        private String resumePhoto; // 사진 경로 추가
         private List<CareerResponse.CareerDTO> careerList;
 
         // Entity를 DTO로 변환하는 생성자
@@ -35,6 +36,7 @@ public class ResumeResponse {
             this.resumeTitle = resume.getResumeTitle();
             this.resumeContent = resume.getResumeContent();
             this.isRep = resume.getIsRep();
+            this.resumePhoto = resume.getResumePhoto();
             this.careerList = new ArrayList<>(); //조심, 많이 실수하는 부분
             for (Career career : resume.getCareerList()) {
                 this.careerList.add(new CareerResponse.CareerDTO(career));
@@ -49,6 +51,7 @@ public class ResumeResponse {
         private String resumeTitle;
         private String resumeContent;
         private MemberResponse.MemberDTO member;
+        private String resumePhoto; // 사진 경로 추가
         private List<CareerResponse.CareerDTO> careerList;
         private Boolean isOwner;
 
@@ -58,6 +61,7 @@ public class ResumeResponse {
             this.resumeTitle = resume.getResumeTitle();
             this.resumeContent = resume.getResumeContent();
             this.member = MemberResponse.MemberDTO.fromEntity(resume.getMember());
+            this.resumePhoto = resume.getResumePhoto();
             this.isOwner = false;
 
             this.careerList = new ArrayList<>(); //조심, 많이 실수하는 부분
@@ -115,6 +119,7 @@ public class ResumeResponse {
         private String resumeTitle;
         private String resumeContent;
         private MemberResponse.MemberDTO member;
+        private String resumePhoto; // 사진 경로 추가
         private List<CareerResponse.CareerDTO> careerList;
         private Boolean isOwner;
 
@@ -124,6 +129,7 @@ public class ResumeResponse {
             this.resumeTitle = resume.getResumeTitle();
             this.resumeContent = resume.getResumeContent();
             this.member = MemberResponse.MemberDTO.fromEntity(resume.getMember());
+            this.resumePhoto = resume.getResumePhoto();
 
             this.careerList = new ArrayList<>(); //조심, 많이 실수하는 부분
             for (Career career : resume.getCareerList()) {

@@ -17,7 +17,14 @@
                     <h2 class="text-truncate h4 mb-0">{{member.username}}님의 포부를 담은 이력서</h2>
                 </div>
                 <div class="card-body">
-                    <form id="save-form" action="/resume/save" method="post">
+                    <form id="save-form" action="/resume/save" method="post" enctype="multipart/form-data">
+                        <!-- 사진 업로드 -->
+                        <div class="mb-3">
+                            <label for="photo" class="form-label fw-bold">이력서 사진</label>
+                            <input type="file" class="form-control" id="photo" name="photo" accept="image/*">
+                            <div class="form-text">선택사항. 프로필 사진을 업로드 해주세요.</div>
+                        </div>
+
                         <!-- 이력서 제목 -->
                         <div class="mb-3">
                             <label for="resumeTitle" class="form-label fw-bold">제목, 눈길을 잡아끄는 키워드를 작성해주세요</label>

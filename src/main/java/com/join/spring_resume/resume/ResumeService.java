@@ -12,9 +12,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Transactional(readOnly = true)
@@ -24,6 +30,9 @@ public class ResumeService {
 
     private final ResumeJpaRepository resumeJpaRepository;
     private final CareerJpaRepository careerJpaRepository;
+
+    // 파일 저장 경로를 상수로 관리하여 일관성 유지 (WebMvcConfig와 동일한 경로)
+    private static final String UPLOAD_DIR = "C:/join-uploads/resume-images/";
 
     //관리자용 전체 이력서 조회
     public List<Resume> findAll() {
@@ -93,6 +102,25 @@ public class ResumeService {
     @Transactional
     public Resume save(ResumeRequest.SaveDTO saveDTO, Member sessionMember) {
 
+        //사진 파일 처리
+        String photoFileName = null; // 파일명 초기화
+        MultipartFile photo = saveDTO.getPhoto();
+
+        if (photo != null && !photo.isEmpty()) {
+            // 파일이 비어있지 않으면 UUID를 사용하여 고유한 파일명 생성
+            photoFileName = UUID.randomUUID() + "_" + photo.getOriginalFilename();
+
+            Path filePath = Paths.get(UPLOAD_DIR + photoFileName);
+
+            try {
+                // 폴더가 존재하지 않으면 자동으로 생성합니다.
+                Files.createDirectories(filePath.getParent());
+                Files.write(filePath, photo.getBytes());
+            } catch (IOException e) {
+                throw new RuntimeException("파일 저장에 실패했습니다.", e);
+            }
+        }
+
         //대표이력서 설정
         if (Boolean.TRUE.equals(saveDTO.getIsRep())) {
             resumeJpaRepository.resetAllIsRepByMemberIdx(sessionMember.getMemberIdx());
@@ -100,6 +128,7 @@ public class ResumeService {
 
         //수정사항 저장
         Resume resume = saveDTO.toEntity(sessionMember);
+        resume.setResumePhoto(photoFileName); // 업로드된 사진 파일명 설정
         Resume savedResume = resumeJpaRepository.save(resume);
 
         //경력정보 저장
@@ -143,11 +172,39 @@ public class ResumeService {
             throw new Exception403("이력서를 수정할 권한이 없습니다.");
         }
 
-        // 2. 이력서 기본 정보 수정 (JPA의 더티 체킹으로 자동 UPDATE)
+        // 2. 사진 파일 처리 (새 파일이 있으면 교체)
+        MultipartFile photo = updateDTO.getPhoto();
+        if (photo != null && !photo.isEmpty()) {
+            // 기존 파일명 조회 (삭제를 위해)
+            String oldPhotoFileName = resume.getResumePhoto();
+
+            // 새 파일 저장
+            String newPhotoFileName = UUID.randomUUID() + "_" + photo.getOriginalFilename();
+            Path filePath = Paths.get(UPLOAD_DIR + newPhotoFileName);
+            try {
+                // 폴더가 존재하지 않으면 자동으로 생성합니다.
+                Files.createDirectories(filePath.getParent());
+                Files.write(filePath, photo.getBytes());
+
+                // DB에 새 파일명으로 업데이트 (더티 체킹)
+                resume.setResumePhoto(newPhotoFileName);
+
+                // 기존 파일이 있었다면 서버에서 삭제
+                if (oldPhotoFileName != null && !oldPhotoFileName.isEmpty()) {
+                    Path oldFilePath = Paths.get(UPLOAD_DIR + oldPhotoFileName);
+                    Files.deleteIfExists(oldFilePath);
+                }
+
+            } catch (IOException e) {
+                throw new RuntimeException("파일 수정 중 오류가 발생했습니다.", e);
+            }
+        }
+
+        // 3. 이력서 기본 정보 수정 (JPA의 더티 체킹으로 자동 UPDATE)
         resume.setResumeTitle(updateDTO.getResumeTitle());
         resume.setResumeContent(updateDTO.getResumeContent());
 
-        // 3. 대표 이력서 설정 (체크박스 확인)
+        // 4. 대표 이력서 설정 (체크박스 확인)
         if (Boolean.TRUE.equals(updateDTO.getIsRep())) {
             resumeJpaRepository.resetAllIsRepByMemberIdx(sessionMember.getMemberIdx());
             resume.setIsRep(true);
@@ -155,7 +212,7 @@ public class ResumeService {
             resume.setIsRep(false);
         }
 
-        // 3. 새로 추가된 경력만 저장
+        // 5. 새로 추가된 경력만 저장
         if (updateDTO.getCareers() != null) {
             for (CareerRequest.UpdateDTO careerDTO : updateDTO.getCareers()) {
 
@@ -179,7 +236,7 @@ public class ResumeService {
             }
         }
 
-        // 4. 삭제 경력사항 제거 - JS 'deletedCareerIds' 호출
+        // 6. 삭제 경력사항 제거
         if (updateDTO.getDeletedCareerIds() != null && !updateDTO.getDeletedCareerIds().isEmpty()) {
             careerJpaRepository.deleteAllById(updateDTO.getDeletedCareerIds()); // DELETE 실행
         }
@@ -188,11 +245,28 @@ public class ResumeService {
     //이력서 삭제
     @Transactional
     public void deleteById(Long resumeIdx, Member member) {
-        Resume resume = this.findByIdWithCareers(resumeIdx);
+        // 1. 이력서 조회 (연관된 Career는 JPA가 자동으로 처리하므로 findById로 충분)
+        Resume resume = resumeJpaRepository.findById(resumeIdx)
+                .orElseThrow(() -> new Exception404("해당 이력서를 찾을 수 없습니다. id: " + resumeIdx));
 
+        // 2. 소유권 확인
         if (!resume.isOwner(member.getMemberIdx())) {
             throw new Exception403("본인이 작성한 이력서만 삭제할 수 있습니다");
         }
+
+        // 3. 파일 시스템에서 사진 파일 삭제
+        String photoFileName = resume.getResumePhoto();
+        if (photoFileName != null && !photoFileName.isEmpty()) {
+            try {
+                Path filePath = Paths.get(UPLOAD_DIR + photoFileName);
+                Files.deleteIfExists(filePath);
+            } catch (IOException e) {
+                // 파일 삭제에 실패하더라도 DB 트랜잭션은 롤백하지 않도록 처리합니다. (로그만 기록)
+                System.err.println("파일 삭제 실패: " + photoFileName + ", 에러: " + e.getMessage());
+            }
+        }
+
+        // 4. DB에서 이력서 삭제 (연관된 Career도 CascadeType.REMOVE로 함께 삭제됨)
         resumeJpaRepository.delete(resume);
     }
 
