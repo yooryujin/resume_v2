@@ -1,11 +1,16 @@
 package com.join.spring_resume.resume;
 
+import com.join.spring_resume._core.common.PageResponseDTO;
+import com.join.spring_resume.career.Career;
 import com.join.spring_resume.career.CareerResponse;
+import com.join.spring_resume.member.Member;
 import com.join.spring_resume.member.MemberResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.data.domain.Page;
 
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,7 +27,7 @@ public class ResumeResponse {
         private String resumeTitle;
         private String resumeContent;
         private Boolean isRep;
-        private List<CareerResponse.InfoDTO> careerList;
+        private List<CareerResponse.CareerDTO> careerList;
 
         // Entity를 DTO로 변환하는 생성자
         public UpdateFormDTO(Resume resume) {
@@ -30,9 +35,10 @@ public class ResumeResponse {
             this.resumeTitle = resume.getResumeTitle();
             this.resumeContent = resume.getResumeContent();
             this.isRep = resume.getIsRep();
-            this.careerList = resume.getCareerList().stream()
-                    .map(CareerResponse.InfoDTO::new)
-                    .collect(Collectors.toList());
+            this.careerList = new ArrayList<>(); //조심, 많이 실수하는 부분
+            for (Career career : resume.getCareerList()) {
+                this.careerList.add(new CareerResponse.CareerDTO(career));
+            }
         }
     }
 
@@ -43,7 +49,8 @@ public class ResumeResponse {
         private String resumeTitle;
         private String resumeContent;
         private MemberResponse.MemberDTO member;
-        private List<CareerResponse.InfoDTO> careerList;
+        private List<CareerResponse.CareerDTO> careerList;
+        private Boolean isOwner;
 
         // Resume 엔티티를 받아서 이 DTO를 채우는 생성자
         public CorpDetailDTO(Resume resume) {
@@ -51,18 +58,23 @@ public class ResumeResponse {
             this.resumeTitle = resume.getResumeTitle();
             this.resumeContent = resume.getResumeContent();
             this.member = MemberResponse.MemberDTO.fromEntity(resume.getMember());
-            this.careerList = resume.getCareerList().stream()
-                    .map(CareerResponse.InfoDTO::new)
-                    .collect(Collectors.toList());
+            this.isOwner = false;
+
+            this.careerList = new ArrayList<>(); //조심, 많이 실수하는 부분
+            for (Career career : resume.getCareerList()) {
+                this.careerList.add(new CareerResponse.CareerDTO(career));
+            }
         }
     }
 
-    // 페이징을 위한 DTO
+    /**
+     * 이력서 목록보기 페이징을 위한 DTO
+     */
     @Data
     @AllArgsConstructor
     public static class ListDTO {
-        private Resume repResume; //대표이력서
-        private Page<Resume> resumePage; // 일반이력서
+        private ResumeDTO repResume; //대표이력서
+        private PageResponseDTO<ResumeDTO> resumePage; // 일반이력서
 
         //총 이력서 개수 카운트
         public long getTotalCount() {
@@ -72,6 +84,54 @@ public class ResumeResponse {
             }
             return count;
         }
+
+    }
+
+    /**
+     * 이력서 목록보기의 일반이력서를 나타내는 DTO
+     */
+    @Data
+    public static class ResumeDTO {
+        private Long resumeIdx;
+        private String resumeTitle;
+        private String shortContent;
+        private String createdAtFormatted;
+
+        public ResumeDTO(Resume resume) {
+            this.resumeIdx = resume.getResumeIdx();
+            this.resumeTitle = resume.getResumeTitle();
+            this.shortContent = resume.getShortContent();
+            this.createdAtFormatted = resume.getCreatedAtFormatted();
+        }
+    }
+
+    /**
+     * 개인회원 이력서 상세보기 페이지를 위한 DTO
+     * - detail.mustache 뷰가 필요로 하는 모든 데이터를 담고 있다.
+     */
+    @Data
+    public static class DetailDTO {
+        private Long resumeIdx;
+        private String resumeTitle;
+        private String resumeContent;
+        private MemberResponse.MemberDTO member;
+        private List<CareerResponse.CareerDTO> careerList;
+        private Boolean isOwner;
+
+        // Resume 엔티티를 이 DTO로 변환하는 생성자
+        public DetailDTO(Resume resume) {
+            this.resumeIdx = resume.getResumeIdx();
+            this.resumeTitle = resume.getResumeTitle();
+            this.resumeContent = resume.getResumeContent();
+            this.member = MemberResponse.MemberDTO.fromEntity(resume.getMember());
+
+            this.careerList = new ArrayList<>(); //조심, 많이 실수하는 부분
+            for (Career career : resume.getCareerList()) {
+                this.careerList.add(new CareerResponse.CareerDTO(career));
+            }
+
+        }
+
 
     }
 

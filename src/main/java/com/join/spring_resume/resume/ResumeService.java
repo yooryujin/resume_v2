@@ -1,5 +1,6 @@
 package com.join.spring_resume.resume;
 
+import com.join.spring_resume._core.common.PageResponseDTO;
 import com.join.spring_resume._core.errors.exception.Exception403;
 import com.join.spring_resume._core.errors.exception.Exception404;
 import com.join.spring_resume.career.Career;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,6 +42,20 @@ public class ResumeService {
                 .orElseThrow(() -> new Exception404("해당 이력서를 찾을 수 없습니다. id: " + resumeIdx));
     }
 
+    //개인회원 이력서 상세보기
+    public ResumeResponse.DetailDTO findMyResumeDetail(Long resumeIdx, Long sessionUserId) {
+        // 1. 이력서를 경력과 함께 조회 (기존 메소드 재활용)
+        Resume resume = findByIdWithCareers(resumeIdx);
+
+        // 2. 소유권 확인 (서비스의 책임)
+        if (!resume.isOwner(sessionUserId)) {
+            throw new Exception403("이력서를 조회할 권한이 없습니다");
+        }
+
+        // 3. DTO로 변환 후 반환 (서비스의 책임)
+        return new ResumeResponse.DetailDTO(resume);
+    }
+
     // 기업 채용담당관용 이력서 상세보기
     public ResumeResponse.CorpDetailDTO findCorpResumeDetail(Long resumeIdx) {
         Resume resume = resumeJpaRepository.findByIdWithCareers(resumeIdx)
@@ -51,15 +67,25 @@ public class ResumeService {
 
     // 페이징된 이력서 목록 조회
     public ResumeResponse.ListDTO findResumesForList(Long memberIdx, Pageable pageable) {
-        // 1. 대표 이력서 조회 (없을 수도 있음)
+        //1. 대표 이력서 엔티티 조회
         Resume repResume = resumeJpaRepository.findRepresentativeResumeByMemberIdx(memberIdx)
                 .orElse(null);
 
-        // 2. 일반이력서 페이징해 조회
+        //2. 대표이력서 DTO 변환
+        ResumeResponse.ResumeDTO repResumeDto = (repResume != null)
+                ? new ResumeResponse.ResumeDTO(repResume) : null;
+
+        //3. 일반이력서 페이징해 조회
         Page<Resume> resumePage = resumeJpaRepository.findByMemberIdxAndIsRepFalse(memberIdx, pageable);
 
-        // 3. ListDTO에 담아 반환
-        return new ResumeResponse.ListDTO(repResume, resumePage);
+        //4. 조회된 일반이력서 DTO 변환
+        PageResponseDTO<ResumeResponse.ResumeDTO> resumeDtoPage = PageResponseDTO.from(
+                resumePage,
+                ResumeResponse.ResumeDTO::new
+        );
+
+        // 5. ListDTO에 담아 반환
+        return new ResumeResponse.ListDTO(repResumeDto, resumeDtoPage);
     }
 
 
@@ -78,7 +104,7 @@ public class ResumeService {
 
         //경력정보 저장
         List<CareerRequest.SaveDTO> cSaveDTOS = saveDTO.getCareers();
-        if(cSaveDTOS != null && !cSaveDTOS.isEmpty()){
+        if (cSaveDTOS != null && !cSaveDTOS.isEmpty()) {
             // 각 Career DTO를 Career 엔티티로 변환
             List<Career> careers = cSaveDTOS.stream()
                     .map(careerDTO -> {
@@ -169,7 +195,7 @@ public class ResumeService {
         }
         resumeJpaRepository.delete(resume);
     }
-    
+
     // 대표이력서 찾기
     public Resume findIdMyResumes(Member member) {
         return resumeJpaRepository.findRepresentativeResumeByMember(member)
@@ -182,8 +208,8 @@ public class ResumeService {
 
         //이력서 조회 및 소유권 확인
         Resume resume = resumeJpaRepository.findById(resumeIdx).orElseThrow(() -> {
-            return new Exception404("이력서를 찾을 수 없습니다"+ resumeIdx);
-        } );
+            return new Exception404("이력서를 찾을 수 없습니다" + resumeIdx);
+        });
         if (!resume.isOwner(memberIdx)) {
             throw new Exception403("대표이력서를 수정할 권한이 없습니다.");
         }

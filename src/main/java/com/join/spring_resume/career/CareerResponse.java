@@ -6,10 +6,12 @@ import java.time.format.DateTimeFormatter;
 
 public class CareerResponse {
 
-    // ✨ 'DTO'를 'InfoDTO'와 같이 더 구체적인 이름으로 변경
+    /**
+     * 경력 정보를 화면에 보여주기 위한 공통 DTO
+     * - 이력서 상세보기, 수정 등 다양한 곳에서 재사용됩니다.
+     */
     @Data
-    public static class InfoDTO {
-        // ✨ 식별자 추가: View에서 특정 항목을 다룰 때 유용함
+    public static class CareerDTO {
         private Long careerIdx;
         private String corpName;
         private String position;
@@ -17,7 +19,7 @@ public class CareerResponse {
         private String startAt;
         private String endAt;
 
-        public InfoDTO(Career career) {
+        public CareerDTO(Career career) {
             this.careerIdx = career.getCareerIdx();
             this.corpName = career.getCorpName();
             this.position = career.getPosition();

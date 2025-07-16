@@ -58,21 +58,14 @@ public class ResumeController {
     @Auth // 개인 회원만 접근 가능
     @GetMapping("/resume/{id}")
     public String detail(@PathVariable(name = "id") Long resumeIdx, Model model, HttpSession session) {
-        // 1. 세션에서 사용자 정보 가져오기
+        //1. 세션에서 사용자 정보 가져오기
         SessionUser sessionUser = (SessionUser) session.getAttribute("session");
 
-        // 2. 서비스 호출
-        Resume resume = resumeService.findByIdWithCareers(resumeIdx);
+        //2. DTO를 반환하는 서비스 메서드
+        ResumeResponse.DetailDTO detailDTO = resumeService.findMyResumeDetail(resumeIdx, sessionUser.getId());
 
-        // 3. 소유권 확인 (이력서 주인만 볼 수 있도록)
-        if (!resume.isOwner(sessionUser.getId())) {
-            throw new Exception403("이력서를 조회할 권한이 없습니다");
-        }
-
-        // 4. 뷰에 데이터 전달
-        ResumeResponse.CorpDetailDTO responseDTO = new ResumeResponse.CorpDetailDTO(resume);
-        model.addAttribute("resume", responseDTO);
-        model.addAttribute("isOwner", true);
+        //3. 뷰에 데이터 전달
+        model.addAttribute("resume", detailDTO);
         return "resume/detail";
     }
 
