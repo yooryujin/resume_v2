@@ -30,21 +30,24 @@ public class ResumeService {
 
     private final ResumeJpaRepository resumeJpaRepository;
     private final CareerJpaRepository careerJpaRepository;
-
-    // 파일 저장 경로를 상수로 관리하여 일관성 유지 (WebMvcConfig와 동일한 경로)
     private static final String UPLOAD_DIR = "C:/join-uploads/resume-images/";
 
-    //관리자용 전체 이력서 조회
+    // 관리자용 이력서 전체조회
     public List<Resume> findAll() {
         return resumeJpaRepository.findAll();
     }
 
-    //회원용 전체 이력서 조회
+    // 회원 이력서 전체조회
     public List<Resume> findMyResumes(Long memberIdx) {
         return resumeJpaRepository.findAllByMemberIdx(memberIdx);
     }
 
-    //이력서와 경력 함께 조회
+    // 회원 이력서 카운트
+    public int countMyResume(Long memberIdx) {
+        return resumeJpaRepository.countByMemberIdx(memberIdx);
+    }
+
+    // 이력서와 경력 동시 조회
     public Resume findByIdWithCareers(Long resumeIdx) {
         // 이전에 추가했던 JOIN FETCH 쿼리를 사용합니다.
         return resumeJpaRepository.findByIdWithCareers(resumeIdx)

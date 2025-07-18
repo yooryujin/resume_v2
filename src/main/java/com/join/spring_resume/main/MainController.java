@@ -88,7 +88,7 @@ public class MainController {
             throw new Exception403("일반회원만 접근할수있습니다");
         }
 
-        int resumeCount = resumeService.findMyResumes(sessionUser.getId()).size(); // 이력서 등록 갯수
+        int resumeCount = resumeService.countMyResume(sessionUser.getId()); // 이력서 등록 갯수
         Long recruitCount = applyService.getRecruitCount(sessionUser.getId()); // 공고에 지원한 갯수
         int boardCount = boardService.findByMemberIdx(sessionUser.getId()).size();// 게시물 작성 갯수 가져오기
         Member member = memberService.findById(sessionUser.getId());
