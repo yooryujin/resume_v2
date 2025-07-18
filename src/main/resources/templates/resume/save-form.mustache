@@ -178,19 +178,21 @@
 
         // '저장하기' 폼 제출 이벤트
         saveForm.addEventListener('submit', function (e) {
-            // 제출 전, 내용이 비어있는 경력 폼은 자동으로 제거
-            const newCareerItems = document.querySelectorAll('.career-item');
-            newCareerItems.forEach(item => {
+            // 내용이 비어있는 경력 폼 자동 제거
+            const careerItems = document.querySelectorAll('.career-item');
+            careerItems.forEach(item => {
+                // 회사명 input을 기준으로 비어있는지 확인
                 const corpNameInput = item.querySelector('input[name*="corpName"]');
                 if (corpNameInput && corpNameInput.value.trim() === '') {
-                    item.remove();
+                    item.remove(); // 폼 자체를 DOM에서 삭제
                 }
             });
 
             // HTML5 기본 유효성 검사
             if (!saveForm.checkValidity()) {
                 e.preventDefault(); // 유효하지 않으면 제출 중단
-                saveForm.reportValidity(); // 사용자에게 유효성 오류 메시지 표시
+                // 사용자에게 유효성 오류 메시지를 명시적으로 표시
+                saveForm.reportValidity();
             }
         });
     });

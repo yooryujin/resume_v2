@@ -1,8 +1,11 @@
 server:
   servlet:
     multipart:
-      max-file-size: 5MB
-      max-request-size: 5MB
+      enabled: true
+      max-file-size: 100MB
+      max-request-size: 500MB
+      max-file-count: 50
+      max-request-parts: 5000
     encoding:
       charset: utf-8
       force: true
@@ -13,7 +16,7 @@ server:
 logging:
   level:
     root: INFO  # 모든 라이브러리는 INFO 이상만 출력
-    com.tenco: DEBUG # 내 프로젝트는 DEBUG 이상 모두 출력
+    com.join: DEBUG # 내 프로젝트는 DEBUG 이상 모두 출력
 
 # spring 환경 설정
 spring:
@@ -46,7 +49,7 @@ spring:
     hibernate:
       # create: 애플리케이션 시작시 테이블을 새로 생성
       # 기존 데이터는 모두 삭제됨 (개발용)
-      ddl-auto: update
+      ddl-auto: create
     # SQL 쿼리를 콘솔에 출력 (개발용 디버깅)
     show-sql: true
     properties:
@@ -57,3 +60,7 @@ spring:
         default_batch_fetch_size: 10
     # data.sql 파일을 Hibernate 초기화 이후에 실행
     defer-datasource-initialization: true
+  # MySQL 설정
+  sql:
+    init:
+      mode: always

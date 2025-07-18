@@ -51,6 +51,17 @@ public class CareerRequest {
         private LocalDate startAt;
         private LocalDate endAt;
 
+        public Career toEntity(Resume resume) {
+            return Career.builder()
+                    .corpName(this.corpName)
+                    .position(this.position)
+                    .careerContent(this.careerContent)
+                    .startAt(this.startAt)
+                    .endAt(this.endAt)
+                    .resume(resume)
+                    .build();
+        }
+
     }
 
 }
